@@ -537,3 +537,135 @@
 > 2. У запиті 3 ми фільтруємо жанри з менше ніж 100 треками. Чи зміниться результат, якщо знизити поріг до 50? Поясніть результат.
 
 - Так, результат може змінитися. Зниження порогу до 50 треків збільшує ймовірність статистичної похибки
+
+### Частина 4. Індекси та оптимізація
+
+Результат виконання `part4_indexes.js`:
+
+```js
+Завдання 1. Аналіз запиту без індексу
+До створення індексу (73 мс, 113999 документів оброблено)
+{
+  isCached: false,
+  stage: 'SORT',
+  sortPattern: {
+    popularity: -1
+  },
+  memLimit: 33554432,
+  type: 'simple',
+  inputStage: {
+    stage: 'COLLSCAN',
+    filter: {
+      '$and': [
+        {
+          track_genre: {
+            '$eq': 'pop'
+          }
+        },
+        {
+          'audio_features.danceability': {
+            '$gte': 0.7
+          }
+        }
+      ]
+    },
+    direction: 'forward'
+  }
+}
+Після створення індексу (2 мс, 354 документів оброблено)
+{
+  isCached: false,
+  stage: 'FETCH',
+  inputStage: {
+    stage: 'IXSCAN',
+    keyPattern: {
+      track_genre: 1,
+      popularity: -1,
+      'audio_features.danceability': 1
+    },
+    indexName: 'track_genre_1_popularity_-1_audio_features.danceability_1',
+    isMultiKey: false,
+    multiKeyPaths: {
+      track_genre: [],
+      popularity: [],
+      'audio_features.danceability': []
+    },
+    isUnique: false,
+    isSparse: false,
+    isPartial: false,
+    indexVersion: 2,
+    direction: 'forward',
+    indexBounds: {
+      track_genre: [
+        '["pop", "pop"]'
+      ],
+      popularity: [
+        '[MaxKey, MinKey]'
+      ],
+      'audio_features.danceability': [
+        '[0.7, inf.0]'
+      ]
+    }
+  }
+}
+
+Завдання 2. Складений індекс для фонової музики
+{
+  isCached: false,
+  stage: 'FETCH',
+  inputStage: {
+    stage: 'IXSCAN',
+    keyPattern: {
+      explicit: 1,
+      'audio_features.instrumentalness': 1,
+      'audio_features.speechiness': 1
+    },
+    indexName: 'explicit_1_audio_features.instrumentalness_1_audio_features.speechiness_1',
+    isMultiKey: false,
+    multiKeyPaths: {
+      explicit: [],
+      'audio_features.instrumentalness': [],
+      'audio_features.speechiness': []
+    },
+    isUnique: false,
+    isSparse: false,
+    isPartial: false,
+    indexVersion: 2,
+    direction: 'forward',
+    indexBounds: {
+      explicit: [
+        '[false, false]'
+      ],
+      'audio_features.instrumentalness': [
+        '[0.5, inf.0]'
+      ],
+      'audio_features.speechiness': [
+        '[-inf.0, 0.1]'
+      ]
+    }
+  }
+}
+```
+
+> 1. Що змінилося в плані виконання?
+
+- Без індексу стадія виконання була `COLLSCAN` (повне сканування колекції), і для сортування використовувався `SORT` (в оперативній пам'яті). 
+- Після створення складеного індексу за правилом ESR (`{ track_genre: 1, popularity: -1, "audio_features.danceability": 1 }`) стадія виконання змінилася: замість `COLLSCAN` використовується `IXSCAN` (сканування індексу), а замість сортування в пам'яті порядок документів береться безпосередньо з індексу. Документи витягуються зі стадією `FETCH`. Це суттєво зменшує кількість переглянутих документів та час виконання запиту.
+
+![Part 4](screenshots/part4.png)
+
+> 2. Як зрозуміти, що індекс використовується? Наведіть скріншот або значення полів із explain(), які це підтверджують.
+
+- В об'єкті, що повертається після `explain`, це підтверджують наступні поля:
+  - `queryPlanner.winningPlan.inputStage.stage`: має значення `IXSCAN`
+  - `queryPlanner.winningPlan.inputStage.indexName`: містить назву використаного індексу: `explicit_1_audio_features.instrumentalness_1_audio_features.speechiness_1`
+  - `executionStats.totalDocsExamined`: це число набагато менше за кількість усіх документів у колекції, оскільки скануються тільки ті документи, які знайдені за допомогою індексу.
+
+> 3. Чи є цей запит покривним (covered query)? 
+> `db.tracks.find({ track_genre: "pop", popularity: { $gte: 70 } });`
+
+- **Ні, запит не є покривним.**
+- Щоб запит був покривним, він має задовольняти дві умови: 
+  1. Всі поля запиту мають бути в індексі.
+  2. Запит має повертати **лише** ті поля, які є в індексі (потрібна проекція).
+- У цьому запиті ми не використовуємо проекцію. За замовчуванням MongoDB повертає усі поля, включно з полем `_id`, якого немає в нашому індексі. Тому MongoDB змушена звертатися до самих документів на диску, а не отримувати результати виключно з індексу. Щоб зробити його покривним, потрібно було б додати проекцію: `.find(..., { _id: 0, track_genre: 1, popularity: 1 })`
