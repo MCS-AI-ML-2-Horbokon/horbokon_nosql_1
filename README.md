@@ -4,7 +4,10 @@
 
 Щоб запустити проєкт з нуля, виконайте наступні кроки:
 
-1. Переконайтись що створено нове віртуальне оточення, та встановіть залежності: `pip install -r requirements.txt`
+1. Переконайтись що створено нове віртуальне оточення, та встановіть залежності: 
+   ```powershell
+   pip install -r requirements.txt
+   ```
 
 2. Створіть файл `.env` у корені проєкту та додайте рядок підключення до MongoDB:
    ```
@@ -27,12 +30,12 @@
    mongosh $MONGO_URI --file scripts/02_transform.js
    ```
   
-  - Запустіть скрипти із запитами:
-    ```powershell
-    mongosh $MONGO_URI --file queries/part2_queries.js
-    mongosh $MONGO_URI --file queries/part3_queries.js
-    mongosh $MONGO_URI --file queries/part4_indexes.js
-    ```
+   - Запустіть скрипти із запитами:
+   ```powershell
+   mongosh $MONGO_URI --file queries/part2_queries.js
+   mongosh $MONGO_URI --file queries/part3_queries.js
+   mongosh $MONGO_URI --file queries/part4_indexes.js
+   ```
 
 ### Частина 1 — Завантаження даних та проєктування схеми
 
@@ -696,7 +699,9 @@
   - `executionStats.totalDocsExamined`: це число набагато менше за кількість усіх документів у колекції, оскільки скануються тільки ті документи, які знайдені за допомогою індексу.
 
 > 3. Чи є цей запит покривним (covered query)? 
-> `db.tracks.find({ track_genre: "pop", popularity: { $gte: 70 } });`
+```
+db.tracks.find({ track_genre: "pop", popularity: { $gte: 70 } });
+```
 
 - **Ні, запит не є покривним.**
 - Щоб запит був покривним, він має задовольняти дві умови: 
