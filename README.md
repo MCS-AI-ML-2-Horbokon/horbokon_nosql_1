@@ -1,8 +1,8 @@
 ## Завдання 1 — аналітична платформа для музичного стрімінгового сервісу
 
-### 1.2. Трансформація схеми через Aggregation Pipeline
+### Частина 1 — Завантаження даних та проєктування схеми
 
-#### Результат роботи скрипту `02_transform.js`:
+Результат роботи скрипту `02_transform.js`:
 
 ```js
 Кількість документів у tracks: 113999
@@ -38,8 +38,7 @@
 }
 ```
 
-#### Теоретичні запитання:
-
+#### Теоретичні запитання
 
 > 1. Чому аудіо-характеристики винесені в окремий об’єкт `audio_features`, а не зберігаються плоско? Коли таке вкладення вигідне, а коли створює проблеми?
 
@@ -47,14 +46,388 @@
 - зручніше управляти всім набором, наприклад, виключати при запиті, де ці дані не треба
 - з мінусів: довше писати через крапку фільтри і проекції
 
-
 > 2. Чому виконавці зберігаються як масив, а не як рядок? Які запити стають простішими?
 
 - можна шукати треки по певному виконавцю, по списку виконавців, по кількості виконавців
 - можна зробити агрегацію по виконавцю: кількість треків, найпопулярніший трек, тощо
 
-
 > 3. Що таке `$out` і чим він відрізняється від `$merge`? Коли використовувати кожен?
 
 - `$out` - для створення нової колекції
 - `$merge` - для злиття з існуючою, використовується, якщо треба одночасно оновити існуючі і додати неіснуючі записи
+
+### Частина 2. Запити до даних
+
+Результат роботи скрипту `part2_queries.js`:
+
+```js
+Завдання 1. Треки для вечірки:
+Знайдено треків: 7311
+Декілька прикладів:
+[
+  {
+    _id: ObjectId('6a0a0b43db5bdded60edffc2'),
+    track_id: '4LbWtBkN82ZRhz9jqzgrb3',
+    album_name: 'Hold On (Remix)',
+    track_name: 'Hold On - Remix',
+    popularity: 56,
+    duration_ms: 188133,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.755,
+      energy: 0.78,
+      loudness: -6.084,
+      speechiness: 0.0327,
+      acousticness: 0.124,
+      instrumentalness: 0.0000283,
+      liveness: 0.121,
+      valence: 0.387,
+      tempo: 120.004,
+      key: 2,
+      mode: 1,
+      time_signature: 4
+    },
+    duration_sec: 188.1,
+    popularity_tier: 'medium',
+    artists: [
+      'Chord Overstreet',
+      'Deepend'
+    ]
+  },
+  {
+    _id: ObjectId('6a0a0b43db5bdded60ee0000'),
+    track_id: '2SkJKMfjpYsNv0KWOxiegX',
+    album_name: 'When the Morning Comes',
+    track_name: 'Kaleidoscope',
+    popularity: 62,
+    duration_ms: 229320,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.709,
+      energy: 0.913,
+      loudness: -5.148,
+      speechiness: 0.0748,
+      acousticness: 0.0182,
+      instrumentalness: 0,
+      liveness: 0.167,
+      valence: 0.519,
+      tempo: 108.024,
+      key: 7,
+      mode: 1,
+      time_signature: 4
+    },
+    duration_sec: 229.3,
+    popularity_tier: 'medium',
+    artists: [
+      'A Great Big World'
+    ]
+  },
+  {
+    _id: ObjectId('6a0a0b43db5bdded60ee0121'),
+    track_id: '3XdStlaHnq3JrmQDCRqEET',
+    album_name: 'ショッピング',
+    track_name: 'アジアの純真',
+    popularity: 32,
+    duration_ms: 233280,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.732,
+      energy: 0.83,
+      loudness: -6.63,
+      speechiness: 0.0309,
+      acousticness: 0.201,
+      instrumentalness: 0.0000304,
+      liveness: 0.0802,
+      valence: 0.871,
+      tempo: 111.664,
+      key: 0,
+      mode: 1,
+      time_signature: 4
+    },
+    duration_sec: 233.3,
+    popularity_tier: 'low',
+    artists: [
+      'Yosui Inoue',
+      'Tamio Okuda'
+    ]
+  }
+]
+
+Завдання 2. Виконавці, у яких усі треки популярні:
+[
+  {
+    tracks_count: 3,
+    min_popularity: 89,
+    avg_popularity: 92,
+    artist: 'Harry Styles'
+  },
+  {
+    tracks_count: 4,
+    min_popularity: 90,
+    avg_popularity: 90.5,
+    artist: 'Luar La L'
+  },
+  {
+    tracks_count: 5,
+    min_popularity: 86,
+    avg_popularity: 87.4,
+    artist: 'Olivia Rodrigo'
+  },
+  {
+    tracks_count: 4,
+    min_popularity: 87,
+    avg_popularity: 87,
+    artist: 'BYOR'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 79,
+    avg_popularity: 84,
+    artist: 'IVE'
+  },
+  {
+    tracks_count: 12,
+    min_popularity: 76,
+    avg_popularity: 83.7,
+    artist: 'Måneskin'
+  },
+  {
+    tracks_count: 11,
+    min_popularity: 77,
+    avg_popularity: 83.5,
+    artist: 'Lil Nas X'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 81,
+    avg_popularity: 83.3,
+    artist: 'Morgan Wallen'
+  },
+  {
+    tracks_count: 5,
+    min_popularity: 80,
+    avg_popularity: 83,
+    artist: 'One Direction'
+  },
+  {
+    tracks_count: 5,
+    min_popularity: 80,
+    avg_popularity: 82,
+    artist: 'TV Girl'
+  },
+  {
+    tracks_count: 4,
+    min_popularity: 81,
+    avg_popularity: 81.5,
+    artist: 'Mac DeMarco'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 81,
+    avg_popularity: 81.3,
+    artist: 'Cults'
+  },
+  {
+    tracks_count: 4,
+    min_popularity: 79,
+    avg_popularity: 80.5,
+    artist: 'Ricky Montgomery'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 79,
+    avg_popularity: 80.3,
+    artist: 'Luke Combs'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 80,
+    avg_popularity: 80,
+    artist: 'Joy Again'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 80,
+    avg_popularity: 80,
+    artist: 'Declan McKenna'
+  },
+  {
+    tracks_count: 7,
+    min_popularity: 69,
+    avg_popularity: 79.7,
+    artist: 'Mora'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 70,
+    avg_popularity: 79.7,
+    artist: 'Maroon 5'
+  },
+  {
+    tracks_count: 7,
+    min_popularity: 73,
+    avg_popularity: 79.4,
+    artist: 'Beach Bunny'
+  },
+  {
+    tracks_count: 3,
+    min_popularity: 79,
+    avg_popularity: 79,
+    artist: "Gigi D'Agostino"
+  }
+]
+
+Завдання 3. Нетипові треки
+Знайдено жанрів з нетиповими треками: 112
+Приклад (з трьома нетиповими треками):
+{
+  avg_tempo: 123.92268000000001,
+  outlier_threshold: 145.66566440284592,
+  genre: 'chicago-house',
+  outlier_tracks: [
+    {
+      _id: ObjectId('6a0a0b43db5bdded60ee32dd'),
+      track_name: 'What Does It Feel Like?',
+      popularity: 18,
+      artists: [
+        'Felix Da Housecat'
+      ],
+      audio_features: {
+        tempo: 163.072
+      }
+    },
+    {
+      _id: ObjectId('6a0a0b43db5bdded60ee330f'),
+      track_name: 'Cool Water - Mixed',
+      popularity: 15,
+      artists: [
+        'Ron Trent',
+        'Ivan Conti',
+        'Lars Bartkuhn'
+      ],
+      audio_features: {
+        tempo: 170.012
+      }
+    },
+    {
+      _id: ObjectId('6a0a0b43db5bdded60ee3354'),
+      track_name: 'Urbane Sunset',
+      popularity: 13,
+      artists: [
+        'Mr. Fingers'
+      ],
+      audio_features: {
+        tempo: 194.03
+      }
+    }
+  ]
+}
+
+Завдання 4. Треки для фонової роботи
+Знайдено треків: 9324
+Декілька прикладів:
+[
+  {
+    _id: ObjectId('6a0a0b43db5bdded60edfff2'),
+    track_id: '7x4b0UccXSKBWxWmjcrG2T',
+    album_name: 'Montage Of Heck: The Home Recordings',
+    track_name: 'And I Love Her',
+    popularity: 66,
+    duration_ms: 124933,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.616,
+      energy: 0.282,
+      loudness: -15.317,
+      speechiness: 0.0331,
+      acousticness: 0.983,
+      instrumentalness: 0.833,
+      liveness: 0.13,
+      valence: 0.435,
+      tempo: 96.638,
+      key: 1,
+      mode: 1,
+      time_signature: 4
+    },
+    duration_sec: 124.9,
+    popularity_tier: 'medium',
+    artists: [
+      'Kurt Cobain'
+    ]
+  },
+  {
+    _id: ObjectId('6a0a0b43db5bdded60ee0057'),
+    track_id: '5RO0MNa5hBKIM4OcjygadU',
+    album_name: 'Chi Mai',
+    track_name: 'Chi Mai',
+    popularity: 40,
+    duration_ms: 188695,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.739,
+      energy: 0.287,
+      loudness: -14.007,
+      speechiness: 0.059,
+      acousticness: 0.969,
+      instrumentalness: 0.961,
+      liveness: 0.111,
+      valence: 0.557,
+      tempo: 80.64,
+      key: 6,
+      mode: 0,
+      time_signature: 4
+    },
+    duration_sec: 188.7,
+    popularity_tier: 'medium',
+    artists: [
+      'Joseph Sullinger'
+    ]
+  },
+  {
+    _id: ObjectId('6a0a0b43db5bdded60ee0061'),
+    track_id: '7Ca2CkwSqHyr3eCh8IRdjz',
+    album_name: 'Mujer con Abanico',
+    track_name: 'Mujer con Abanico',
+    popularity: 41,
+    duration_ms: 156787,
+    explicit: false,
+    track_genre: 'acoustic',
+    audio_features: {
+      danceability: 0.769,
+      energy: 0.135,
+      loudness: -12.049,
+      speechiness: 0.061,
+      acousticness: 0.986,
+      instrumentalness: 0.905,
+      liveness: 0.106,
+      valence: 0.471,
+      tempo: 103.939,
+      key: 5,
+      mode: 0,
+      time_signature: 4
+    },
+    duration_sec: 156.8,
+    popularity_tier: 'medium',
+    artists: [
+      'Agustín Amigó',
+      'Nylonwings'
+    ]
+  }
+]
+```
+
+#### Теоретичні запитання
+
+> 1. Для чого використовується інструкція $unwind?
+
+`$unwind` використовується для "розгортання" масиву у документі. Вона бере масив із заданого поля і створює окремий документ для кожного елемента цього масиву. Усі інші поля оригінального документа дублюються в кожному новому документі.
+
+> 2. Чим $stdDevPop відрізняється від $stdDevSamp?
+
+- `$stdDevPop` обчислює стандартне відхилення для генеральної сукупності, використовується, коли дані представляють усю множину.
+- `$stdDevSamp` обчислює стандартне відхилення для вибірки, використовується, коли дані є лише частиною більшої множини.
