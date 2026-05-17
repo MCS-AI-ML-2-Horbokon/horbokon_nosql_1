@@ -1,5 +1,39 @@
 ## Завдання 1 — аналітична платформа для музичного стрімінгового сервісу
 
+### Налаштування оточення
+
+Щоб запустити проєкт з нуля, виконайте наступні кроки:
+
+1. Переконайтись що створено нове віртуальне оточення, та встановіть залежності: `pip install -r requirements.txt`
+
+2. Створіть файл `.env` у корені проєкту та додайте рядок підключення до MongoDB:
+   ```
+   MONGO_URI="mongodb+srv://<user>:<password>@spotify.8b2xrn5.mongodb.net/?appName=Spotify"
+   ```
+
+3. Порядок запуску скриптів:
+   - Завантажте початкові дані з `datasets/dataset.csv` у колекцію `tracks_raw`:
+   ```powershell
+   python scripts/01_load_data.py
+   ```
+   
+   - В оточенні Powershell створіть тимчасову змінну з рядком підключення
+   ```powershell
+   $MONGO_URI="mongodb+srv://...
+   ```
+   
+   - Виконайте трансформацію даних із `tracks_raw` у фінальну колекцію `tracks`:
+   ```powershell
+   mongosh $MONGO_URI --file scripts/02_transform.js
+   ```
+  
+  - Запустіть скрипти із запитами:
+    ```powershell
+    mongosh $MONGO_URI --file queries/part2_queries.js
+    mongosh $MONGO_URI --file queries/part3_queries.js
+    mongosh $MONGO_URI --file queries/part4_indexes.js
+    ```
+
 ### Частина 1 — Завантаження даних та проєктування схеми
 
 Результат роботи скрипту `02_transform.js`:
